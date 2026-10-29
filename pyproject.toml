@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fairshare"
+version = "0.1.0"
+description = "Shared-expense tracker: groups, flexible splits, balances and minimal settle-up. FastAPI + HTMX."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Abdul Raheem" }]
+requires-python = ">=3.11"
+keywords = ["expenses", "splitwise", "fastapi", "htmx", "settle-up", "shared-finance"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Framework :: FastAPI",
+  "Intended Audience :: End Users/Desktop",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Office/Business :: Financial :: Accounting",
+]
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn>=0.27",
+  "sqlalchemy>=2.0",
+  "jinja2>=3.1",
+  "python-multipart>=0.0.9",
+  "itsdangerous>=2.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.5"]
+
+[project.scripts]
+fairshare = "fairshare.__main__:run"
+
+[project.urls]
+Homepage = "https://github.com/BoogeyCodes/fairshare"
+Issues = "https://github.com/BoogeyCodes/fairshare/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+fairshare = ["templates/*.html", "static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency-injection markers are designed to be called in argument defaults.
+extend-immutable-calls = [
+  "fastapi.Depends",
+  "fastapi.Form",
+  "fastapi.Query",
+  "fastapi.Body",
+  "fastapi.Path",
+]
