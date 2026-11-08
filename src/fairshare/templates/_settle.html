@@ -1,0 +1,11 @@
+{% if transfers %}
+  <p class="muted small">Fewest payments to square everyone up:</p>
+  <ul class="transfers">
+    {% for t in transfers %}
+      <li><b>{{ names.get(t.from_user, '?') }}</b> → {{ names.get(t.to_user, '?') }}
+        <span class="amount">{{ t.amount_cents|money }}</span></li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="muted">Everyone's settled up. 🎉</p>
+{% endif %}

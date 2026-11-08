@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Your groups · FairShare{% endblock %}
+{% block content %}
+<h1>Your groups</h1>
+<div class="grid">
+  {% for g in groups %}
+    <a class="card group-card" href="/groups/{{ g.id }}">
+      <h3>{{ g.name }}</h3>
+      {% if g.description %}<p class="muted">{{ g.description }}</p>{% endif %}
+    </a>
+  {% else %}
+    <p class="muted">No groups yet — create your first one below.</p>
+  {% endfor %}
+</div>
+
+<div class="card narrow">
+  <h2>New group</h2>
+  <form method="post" action="/groups" class="stack">
+    <label>Name<input name="name" required placeholder="Trip to Lahore"></label>
+    <label>Description<input name="description" placeholder="optional"></label>
+    <button class="primary">Create group</button>
+  </form>
+</div>
+{% endblock %}

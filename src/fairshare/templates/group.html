@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}{{ group.name }} · FairShare{% endblock %}
+{% block content %}
+<p><a href="/groups" class="muted">← all groups</a></p>
+<h1>{{ group.name }}</h1>
+{% if group.description %}<p class="muted">{{ group.description }}</p>{% endif %}
+
+<div class="cols">
+  <section class="card">
+    <h2>Balances</h2>
+    <table class="balances">
+      {% for b in balances %}
+        <tr>
+          <td>{{ b.user }}</td>
+          <td class="num {{ 'pos' if b.net > 0 else 'neg' if b.net < 0 else '' }}">
+            {% if b.net > 0 %}is owed {{ b.net|money }}
+            {% elif b.net < 0 %}owes {{ (-b.net)|money }}
+            {% else %}settled up{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+    <button class="secondary" hx-get="/groups/{{ group.id }}/settle" hx-target="#settle" hx-swap="innerHTML">
+      Suggest settle-up
+    </button>
+    <div id="settle"></div>
+  </section>
+
+  <section class="card">
+    <h2>Members</h2>
+    <ul class="members">
+      {% for m in members %}<li>{{ m.display_name }} <span class="muted">{{ m.email }}</span></li>{% endfor %}
+    </ul>
+    {% if group.created_by == user.id %}
+      <form method="post" action="/groups/{{ group.id }}/members" class="row">
+        <input name="email" type="email" placeholder="teammate@example.com" required>
+        <button>Add member</button>
+      </form>
+    {% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <h2>Add an expense</h2>
+  <form method="post" action="/groups/{{ group.id }}/expenses" class="stack">
+    <div class="row">
+      <label class="grow">Description<input name="description" required placeholder="Dinner"></label>
+      <label>Amount<input name="amount" required placeholder="0.00" inputmode="decimal"></label>
+    </div>
+    <div class="row">
+      <label>Paid by
+        <select name="paid_by">
+          {% for m in members %}<option value="{{ m.id }}">{{ m.display_name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Split
+        <select name="split_type" id="split_type">
+          {% for s in split_types %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+        </select>
+      </label>
+    </div>
+    <table class="split-table">
+      <thead><tr><th></th><th>Member</th><th class="value-col">value</th></tr></thead>
+      <tbody>
+        {% for m in members %}
+          <tr>
+            <td><input type="checkbox" name="include_{{ m.id }}" checked></td>
+            <td>{{ m.display_name }}</td>
+            <td class="value-col"><input class="value-input" name="value_{{ m.id }}" placeholder="—"></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="muted hint">
+      <b>equal</b>: tick who's included. <b>exact</b>: enter amounts. <b>percent</b>: enter % (sum 100).
+      <b>shares</b>: enter integer weights.
+    </p>
+    <button class="primary">Add expense</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Expenses</h2>
+  {% for e in expenses %}
+    <div class="expense">
+      <div><b>{{ e.description }}</b> <span class="muted">· {{ e.split_type }}</span></div>
+      <div class="muted">{{ e.amount_cents|money }} · paid by {{ names.get(e.paid_by, '?') }}</div>
+    </div>
+  {% else %}
+    <p class="muted">No expenses yet.</p>
+  {% endfor %}
+</section>
+
+<section class="card">
+  <h2>Record a payment</h2>
+  <form method="post" action="/groups/{{ group.id }}/settlements" class="row wrap">
+    <select name="from_user">{% for m in members %}<option value="{{ m.id }}">{{ m.display_name }}</option>{% endfor %}</select>
+    <span class="muted">paid</span>
+    <select name="to_user">{% for m in members %}<option value="{{ m.id }}">{{ m.display_name }}</option>{% endfor %}</select>
+    <input name="amount" placeholder="0.00" inputmode="decimal" required>
+    <button>Record</button>
+  </form>
+</section>
+
+<script>
+  const sel = document.getElementById('split_type');
+  function sync() {
+    const equal = sel.value === 'equal';
+    document.querySelectorAll('.value-input').forEach(function (i) { i.disabled = equal; });
+  }
+  sel.addEventListener('change', sync);
+  sync();
+</script>
+{% endblock %}
